@@ -1,9 +1,15 @@
 import sqlite3, os
 
 
-def init_db(db_name: str = "passwords.db"):
+def get_db_connection(db_name: str = "passwords.db"):
     conn = sqlite3.connect(db_name)
-    conn.execute(
+    cursor = conn.cursor()
+    return conn, cursor
+
+
+def init_db(db_name: str = "passwords.db"):
+    conn, cursor = get_db_connection(db_name)
+    cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,12 +29,12 @@ def reset_db(db_name: str = "passwords.db"):
 
 
 def add_user(username: str, vault_key: str, db_name: str = "passwords.db"):
-    conn = sqlite3.connect(db_name)
-    conn.execute(
+    conn, cursor = get_db_connection(db_name)
+    cursor.execute(
         """
     INSERT INTO users (username, vault_key) VALUES (?, ?)
-    (username, vault_key)
-    """
+    """,
+        (username, vault_key),
     )
     conn.commit()
     conn.close()
