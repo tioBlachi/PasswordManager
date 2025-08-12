@@ -24,6 +24,18 @@ class Database:
                 );
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS vault_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                site TEXT NOT NULL,
+                account TEXT NOT NULL,
+                password_hash TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+                """
+            )
             conn.commit()
 
     def reset_db(self) -> None:
