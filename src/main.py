@@ -1,6 +1,3 @@
-from argon2 import PasswordHasher
-
-
 def main():
     # 1. User creates account
     print("================================")
@@ -24,7 +21,7 @@ def main():
         elif choice == "3":
             break
         else:
-            print("Please enter a valid choice (1,2,3)\n")
+            print("Please enter a valid choice (1,2,3)")
 
     # 2. User logs into their account
 
@@ -33,17 +30,6 @@ def main():
     # 4. User can display their saved password for a website
 
     # 5. Optional: Consider hashing the website names as well
-    ph = PasswordHasher()
-
-    hash = ph.hash("blas is the best!")
-
-    print(hash)
-
-    try:
-        if ph.verify(hash, "blas is the best"):
-            print("Password verified!")
-    except:
-        print("Password verification failed!")
 
 
 if __name__ == "__main__":
