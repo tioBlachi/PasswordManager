@@ -3,13 +3,13 @@ import sqlite3, os
 
 def get_db_connection(db_name: str = "passwords.db"):
     conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-    return conn, cursor
+    cur = conn.cursor()
+    return conn, cur
 
 
 def init_db(db_name: str = "passwords.db"):
-    conn, cursor = get_db_connection(db_name)
-    cursor.execute(
+    conn, cur = get_db_connection(db_name)
+    cur.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
