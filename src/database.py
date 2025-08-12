@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from src.user import User
+from user import User
 
 
 class Database:
@@ -59,8 +59,8 @@ class Database:
             return cur.rowcount
 
     def list_users(self) -> list[User]:
-        with self.connect() as conn:
-            rows = conn.execute("SELECT * FROM users ORDER BY id").fethcall()
+        with self._connect() as conn:
+            rows = conn.execute("SELECT * FROM users ORDER BY id").fetchall()
             return [
                 User(row["email"], row["vault_key_hash"], row["id"]) for row in rows
             ]
