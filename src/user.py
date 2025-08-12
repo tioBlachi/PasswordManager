@@ -1,6 +1,3 @@
-from src.Hasher import Hasher
-
-
 class User:
     def __init__(self, email: str, vault_key_hash: str, id: int | None = None):
         self.id = id

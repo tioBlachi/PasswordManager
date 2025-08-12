@@ -20,7 +20,7 @@ class Database:
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     email TEXT NOT NULL UNIQUE,
-                    vault_key _ hash TEXT NOT NULL
+                    vault_key_hash TEXT NOT NULL
                 );
                 """
             )
@@ -50,7 +50,7 @@ class Database:
             if not row:
                 return None
             return User(
-                email=row["email"], vault_key_hash=row["valut_key_hash"], id=row["id"]
+                email=row["email"], vault_key_hash=row["vault_key_hash"], id=row["id"]
             )
 
     def delete_user(self, email: str) -> int:
