@@ -1,5 +1,5 @@
-import pytest, sqlite3, os
-from src import utils as ut
+import pytest, os
+from src import database as ut
 
 
 def test_create_delete_db(db_name: str = "test_passwords.db"):
