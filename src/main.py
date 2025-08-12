@@ -2,6 +2,7 @@ import sqlite3
 from user import User
 from hasher import Hasher
 from database import Database
+from utils import *
 
 
 def login():
@@ -10,8 +11,8 @@ def login():
 
 def create_account(db: Database, hasher: Hasher):
     print("==============\n" "Create Account\n" "==============\n")
-    email = input("Enter an Account Email: ")
-    master_pw = input("Enter Master Password: ")
+    email = is_valid_email()
+    master_pw = is_valid_pw()
     new_user = User.from_plaintext(email, master_pw, hasher)
     try:
         user_id = db.add_user(new_user)
@@ -20,18 +21,11 @@ def create_account(db: Database, hasher: Hasher):
         print("This email is already registered")
 
 
-def quit_app():
-    print("Quit")
-
-
 def main():
     db = Database()
     db.init_db()
 
     h = Hasher()
-
-    # user = User.from_plaintext("test@email.com", "masterkey", h)
-    # user_id = db.add_user(user)
 
     # 1. User creates account
     print("================================================")
@@ -49,14 +43,14 @@ def main():
             case "2":
                 create_account(db, h)
                 print("Redirecting to Login")
-                db.list_users()
+                print(db.list_users())
             case "3":
-                quit_app()
+                print("Goodbye!")
                 break
             case _:
                 print("Invalid choice")
 
-    # db.reset_db()
+    db.reset_db()
 
 
 if __name__ == "__main__":
