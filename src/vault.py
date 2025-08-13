@@ -1,5 +1,5 @@
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptogrophy.exceptions import InvalidTag
+from cryptography.exceptions import InvalidTag
 import os, base64
 
 
@@ -22,16 +22,8 @@ class Vault:
             base64.b64encode(nonce).decode(),
         )
 
-    def list_items(self, user_id: int):
-        items = self.db.get_vault_items(user_id)  # expect list of sqlite3.Row
-        result = []
-        for row in items:
-            rowd = dict(row)  # convert Row -> dict for **unpacking
-            pwd = self.decrypt_password(
-                rowd["ciphertext"], rowd["nonce"], rowd["site"], rowd["account"]
-            )
-            result.append({**rowd, "password": pwd})
-        return result
+    def list_sites(self, user_id: int):
+        return self.db.get_vault_sites(user_id)
 
     def decrypt_password(
         self,
@@ -47,3 +39,17 @@ class Vault:
             return self._aesgcm.decrypt(nonce, ciphertext, aad).decode()
         except InvalidTag:
             raise ValueError("Decryption failed")
+
+    def list_items_for_site(self, user_id: int, site: str) -> list[dict]:
+        rows = self.db.get_vault_items_for_site(user_id, site)
+        return [dict(r) for r in rows]
+
+    def get_password_by_id(self, item_id: int) -> str:
+        row = self.db.get_vault_item(item_id)
+        if not row:
+            raise ValueError("Item not found")
+        d = dict(row)
+        # Use AAD binding with site:account
+        return self.decrypt_password(
+            d["ciphertext"], d["nonce"], d["site"], d["account"]
+        )

@@ -39,7 +39,7 @@ def is_valid_pw() -> str:
 
 
 def derive_key(plain_master: str, enc_salt: str) -> bytes:
-    salt = base64.b64encode(enc_salt)
+    salt = base64.b64decode(enc_salt)
     time_cost = 3
     memory_cost = 262_144
     parallelism = 2

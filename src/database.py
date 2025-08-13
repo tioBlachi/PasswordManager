@@ -102,3 +102,36 @@ class Database:
                 (user_id, site.strip(), account.strip(), b64_ciphertext, b64_nonce),
             )
             return cur.lastrowid
+
+    def get_vault_sites(self, user_id: int):
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                SELECT site FROM vault_items WHERE user_id = ?
+                """,
+                (user_id,),
+            )
+            return set([row[0] for row in cur.fetchall()])
+
+    def get_vault_item(self, item_id: int):
+        with self._connect() as conn:
+            return conn.execute(
+                """
+            SELECT id, user_id, site, account, ciphertext, nonce
+            FROM vault_items
+            WHERE id = ?
+            """,
+                (item_id,),
+            ).fetchone()
+
+    def get_vault_items_for_site(self, user_id: int, site: str):
+        with self._connect() as conn:
+            return conn.execute(
+                """
+            SELECT id, site, account, ciphertext, nonce
+            FROM vault_items
+            WHERE user_id = ? AND site = ?
+            ORDER BY account
+            """,
+                (user_id, site.strip()),
+            ).fetchall()
