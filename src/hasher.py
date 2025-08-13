@@ -8,7 +8,7 @@ class Hasher:
     def hash(self, plaintext: str) -> str:
         return self._ph.hash(plaintext)
 
-    def verify_master(self, stored_hash: str, plaintext: str) -> bool:
+    def verify(self, stored_hash: str, plaintext: str) -> bool:
         try:
             if self._ph.verify(stored_hash, plaintext):
                 print("Master Key Verified. Vault unlocked")
