@@ -31,7 +31,7 @@ def vault_loop(user: User, vault) -> None:
         print("\n==============================================")
         print("                Lock Box Vault")
         print("==============================================\n")
-        print("1. Store Password\n2. Retrieve Password\n3. Back\n")
+        print("1. Store Password\n2. Manage Passwords\n3. Back\n")
 
         choice = input("Select an option (1-3): ").strip()
         if choice == "1":
@@ -40,55 +40,113 @@ def vault_loop(user: User, vault) -> None:
             plain_pw = getpass("Enter password: ")
             vault.add_item(user.id, site, account, plain_pw)
             print("Saved.")
-        elif choice == "2":
-            sites = vault.list_sites(user.id)  # I changed this to return a set
-            sites = sorted(sites)
-
+        elif choice == "2":  # Retrieve
+            sites = list(vault.list_sites(user.id))
             if not sites:
-                print("No stored sites.")
+                print("No sites found.")
                 continue
 
-            # Pick site
             print("\nStored sites:")
-            for index, site in enumerate(sites, 1):
-                print(f"{index}. {site}")
+            for idx, site in enumerate(sites, 1):
+                print(f"{idx}. {site}")
+
             try:
-                index = int(input("Choose a site number: ").strip())
-                if not (1 <= index <= len(sites)):
-                    print("Invalid selection.")
+                site_idx = int(input("Select a site by number: "))
+                if site_idx < 1 or site_idx > len(sites):
+                    print("Invalid site selection.")
                     continue
             except ValueError:
-                print("Enter a number.")
+                print("Invalid input.")
                 continue
 
-            selected_site = sites[index - 1]
-            items = vault.list_items_for_site(user.id, selected_site)
+            site_name = sites[site_idx - 1]
+            items = vault.list_items_for_site(user.id, site_name)
+            if not items:
+                print("No accounts found for that site.")
+                continue
 
-            # If multiple accounts for that site, pick one
-            if len(items) > 1:
-                print(f"\nAccounts for {selected_site}:")
-                for i, it in enumerate(items, 1):
-                    print(f"{i}. {it['account']}")
-                try:
-                    j = int(input("Choose an account number: ").strip())
-                    if not (1 <= j <= len(items)):
-                        print("Invalid selection.")
-                        continue
-                except ValueError:
-                    print("Enter a number.")
-                    continue
-                item = items[j - 1]
-            else:
-                item = items[0]
+            print(f"\nAccounts for {site_name}:")
+            for idx, item in enumerate(items, 1):
+                print(f"{idx}. {item['account']}")
 
             try:
-                password = vault.get_password_by_id(item["id"])
-                print("\n=== Credential ===")
-                print(f"Site/App:\t{item['site']}")
-                print(f"Account:\t{item['account']}")
-                print(f"Password:\t{password}")
-            except ValueError as e:
-                print(f"Error: {e}")
+                item_idx = int(input("Select an account by number: "))
+                if item_idx < 1 or item_idx > len(items):
+                    print("Invalid account selection.")
+                    continue
+            except ValueError:
+                print("Invalid input.")
+                continue
+
+            item = items[item_idx - 1]
+
+            while True:
+                print("\n=== Current Credential ===")
+                print(f"Site:    {item['site']}")
+                print(f"Account: {item['account']}")
+
+                print("\n1. Show password")
+                print("2. Update password")
+                print("3. Rename site/account")
+                print("4. Delete account")
+                print("5. Back")
+                sub = input("Select: ").strip()
+
+                if sub == "1":
+                    pw = vault.get_password_by_id(item["id"])
+                    print(
+                        f"\nPassword for {item['site']} (Account: {item['account']}): "
+                    )
+                    print(pw)
+                elif sub == "2":
+                    new_pw = getpass(
+                        f"Enter new password for {item['site']} ({item['account']}): "
+                    )
+                    if vault.update_password(item["id"], new_pw):
+                        print(
+                            f"Password updated for {item['site']} ({item['account']})."
+                        )
+                    else:
+                        print("Update failed.")
+
+                elif sub == "3":
+                    new_site = (
+                        input(f"New site [{item['site']}]: ").strip() or item["site"]
+                    )
+                    new_account = (
+                        input(f"New account [{item['account']}]: ").strip()
+                        or item["account"]
+                    )
+
+                    if new_site == item["site"] and new_account == item["account"]:
+                        print("No changes made. Information is identical")
+
+                    if vault.update_meta(item["id"], new_site, new_account):
+                        item["site"] == new_site
+                        item["account"] == new_account
+                        print(f"Renamed to {item['site']} ({item['account']}).")
+                    else:
+                        print("Rename failed.")
+
+                elif sub == "4":
+                    confirm = input(
+                        f"Type DELETE to remove {item['site']} ({item['account']}) permanently: "
+                    ).strip()
+                    if confirm == "DELETE":
+                        if vault.delete_item(item["id"]):
+                            print("Account deleted.")
+                            break  # Exit back to site list
+                        else:
+                            print("Delete failed.")
+                    else:
+                        print("Cancelled")
+
+                elif sub == "5":
+                    break  # Back to main vault menu
+
+                else:
+                    print("Invalid selection.")
+
         elif choice == "3":
             break
         else:
