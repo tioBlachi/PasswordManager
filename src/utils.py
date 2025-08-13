@@ -1,3 +1,5 @@
+import base64
+from argon2.low_level import hash_secret_raw, Type
 import re
 
 email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
@@ -34,3 +36,20 @@ def is_valid_pw() -> str:
             print("Password must contain: " + ", ".join(errors))
             continue
         return password
+
+
+def derive_key(plain_master: str, enc_salt: str) -> bytes:
+    salt = base64.b64encode(enc_salt)
+    time_cost = 3
+    memory_cost = 262_144
+    parallelism = 2
+    hash_len = 32
+    return hash_secret_raw(
+        secret=plain_master.encode(),
+        salt=salt,
+        time_cost=time_cost,
+        memory_cost=memory_cost,
+        parallelism=parallelism,
+        hash_len=hash_len,
+        type=Type.ID,
+    )
