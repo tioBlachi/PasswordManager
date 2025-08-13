@@ -1,8 +1,11 @@
 class User:
-    def __init__(self, email: str, vault_key_hash: str, id: int | None = None):
+    def __init__(
+        self, email: str, vault_key_hash: str, enc_salt: str, id: int | None = None
+    ):
         self.id = id
         self.email = email.strip().lower()
         self.vault_key_hash = vault_key_hash
+        self.enc_salt = enc_salt
 
     @classmethod
     def from_plaintext(cls, email: str, vault_key: str, hasher):
