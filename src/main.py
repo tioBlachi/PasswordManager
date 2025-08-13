@@ -2,11 +2,33 @@ import sqlite3
 from user import User
 from hasher import Hasher
 from database import Database
+from getpass import getpass
 from utils import *
 
 
-def login():
-    print("Login")
+def login(db: Database, hasher: Hasher) -> User:
+    print("==============================================")
+    print("                   Login")
+    print("==============================================\n")
+    email = input("Enter Account Email: ")
+    user = db.get_user(email)
+    if not user:
+        print("No account with that email")
+        return None
+
+    master_key = getpass("Enter Vault Password: ")
+    if user.verify(master_key, hasher):
+        print("Login Successful!")
+        return user
+
+    print("Invalid credentials")
+    return None
+
+
+def vault(user: User):
+    print("\n==============================================")
+    print("                   Login")
+    print("==============================================\n")
 
 
 def create_account(db: Database, hasher: Hasher):
@@ -38,12 +60,13 @@ def main():
 
         match choice:
             case "1":
-                login()
+                login(db, h)
                 break
             case "2":
                 create_account(db, h)
                 print("Redirecting to Login")
                 print(db.list_users())
+                login(db, h)
             case "3":
                 print("Goodbye!")
                 break
