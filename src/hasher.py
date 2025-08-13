@@ -1,24 +1,24 @@
-from argon2 import PasswordHasher, exceptions as argon2_exc
+import argon2
 
 
 class Hasher:
     def __init__(self):
-        self._ph = PasswordHasher()
+        self._ph = argon2.PasswordHasher()
 
     def hash(self, plaintext: str) -> str:
         return self._ph.hash(plaintext)
 
-    def verify(self, stored_hash: str, plaintext: str) -> bool:
+    def verify_master(self, stored_hash: str, plaintext: str) -> bool:
         try:
-            return self._ph.verify(stored_hash, plaintext)
-        except argon2_exc.VerifyMismatchError:
-            return False
-        except argon2_exc.InvalidHash:
-            # Hash string is malformed / not Argon2
+            if self._ph.verify(stored_hash, plaintext):
+                print("Master Key Verified. Vault unlocked")
+                return True
+        except:
+            print("Unable to verify Master Key")
             return False
 
     def update_hash(self, stored_hash: str) -> bool:
         try:
             return self._ph.check_needs_rehash(stored_hash)
-        except argon2_exc.Invalidhash:
+        except argon2.exceptions.Invalidhash:
             return True
