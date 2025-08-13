@@ -135,3 +135,44 @@ class Database:
             """,
                 (user_id, site.strip()),
             ).fetchall()
+
+    def update_vault_item_cipher(
+        self,
+        item_id: int,
+        ciphertext_b64: str,
+        nonce_b64: str,
+    ) -> int:
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE vault_items
+                SET ciphertext = ?,
+                    nonce = ?
+                WHERE id = ?
+                """,
+                (ciphertext_b64, nonce_b64, item_id),
+            )
+            return cur.rowcount
+
+    def update_vault_item_meta(
+        self,
+        item_id: int,
+        site: str,
+        account: str,
+    ) -> int:
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE vault_items
+                SET site = ?,
+                    account = ?
+                WHERE id = ?
+                """,
+                (site.strip(), account.strip(), item_id),
+            )
+            return cur.rowcount
+
+    def delete_vault_item(self, item_id: int) -> int:
+        with self._connect() as conn:
+            cur = conn.execute("DELETE FROM vault_items WHERE id = ?", (item_id,))
+            return cur.rowcount

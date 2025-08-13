@@ -3,6 +3,14 @@ from cryptography.exceptions import InvalidTag
 import os, base64
 
 
+def _b64e(b: bytes) -> str:
+    return base64.b64encode(b).decode()
+
+
+def _b64d(s: str) -> bytes:
+    return base64.b64decode(s)
+
+
 class Vault:
     def __init__(self, db, master_key: bytes):
         self.db = db
@@ -53,3 +61,47 @@ class Vault:
         return self.decrypt_password(
             d["ciphertext"], d["nonce"], d["site"], d["account"]
         )
+
+    def update_password(self, item_id: int, new_plain_pw: str) -> int:
+        """Re-encrypt password with SAME AAD (site/account)."""
+        row = self.db.get_vault_item(item_id)
+        if not row:
+            return 0
+        d = dict(row)
+        aad = f"{d['site']}:{d['account']}".encode()
+
+        nonce = os.urandom(12)
+        ct = self._aesgcm.encrypt(nonce, new_plain_pw.encode(), aad)
+        return self.db.update_vault_item_cipher(item_id, _b64e(ct), _b64e(nonce))
+
+    def update_meta(self, item_id: int, new_site: str, new_account: str) -> int:
+        """
+        Change site/account. Since AAD changes, we must:
+        - decrypt with OLD AAD
+        - re-encrypt with NEW AAD + new nonce
+        - update cipher+nonce and then update site/account (order doesn’t matter if same txn; here two calls)
+        """
+        row = self.db.get_vault_item(item_id)
+        if not row:
+            return 0
+        d = dict(row)
+
+        # Decrypt with OLD AAD
+        old_aad = f"{d['site']}:{d['account']}".encode()
+        ct = _b64d(d["ciphertext"])
+        nonce = _b64d(d["nonce"])
+        plain_pw = self._aesgcm.decrypt(nonce, ct, old_aad).decode()
+
+        # Re-encrypt with NEW AAD
+        new_site_norm = new_site.strip()
+        new_account_norm = new_account.strip()
+        new_aad = f"{new_site_norm}:{new_account_norm}".encode()
+        new_nonce = os.urandom(12)
+        new_ct = self._aesgcm.encrypt(new_nonce, plain_pw.encode(), new_aad)
+
+        # Persist
+        self.db.update_vault_item_cipher(item_id, _b64e(new_ct), _b64e(new_nonce))
+        return self.db.update_vault_item_meta(item_id, new_site_norm, new_account_norm)
+
+    def delete_item(self, item_id: int) -> int:
+        return self.db.delete_vault_item(item_id)
