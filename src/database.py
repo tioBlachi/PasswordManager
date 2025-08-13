@@ -20,7 +20,8 @@ class Database:
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     email TEXT NOT NULL UNIQUE,
-                    vault_key_hash TEXT NOT NULL
+                    vault_key_hash TEXT NOT NULL,
+                    enc_salt TEXT NOT NULL
                 );
                 """
             )
@@ -31,7 +32,8 @@ class Database:
                 user_id INTEGER NOT NULL,
                 site TEXT NOT NULL,
                 account TEXT NOT NULL,
-                password_hash TEXT NOT NULL,
+                ciphertext TEXT NOT NULL,
+                nonce TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
                 """
@@ -47,9 +49,9 @@ class Database:
         with self._connect() as conn:
             cur = conn.execute(
                 """
-            INSERT INTO users (email, vault_key_hash) VALUES (?, ?)
+            INSERT INTO users (email, vault_key_hash, enc_salt) VALUES (?, ?, ?)
             """,
-                (user.email, user.vault_key_hash),
+                (user.email, user.vault_key_hash, user.enc_salt),
             )
             user.id = cur.lastrowid
             return user.id
@@ -76,3 +78,21 @@ class Database:
             return [
                 User(row["email"], row["vault_key_hash"], row["id"]) for row in rows
             ]
+
+    def add_vault_item(
+        self,
+        user_id: int,
+        site: str,
+        account: str,
+        b64_ciphertext: str,
+        b64_nonce: str,
+    ) -> int:
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO vault_items (user_id, site, account, ciphertext, nonce)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (user_id, site.strip(), account.strip(), b64_ciphertext, b64_nonce),
+            )
+            return cur.lastrowid
