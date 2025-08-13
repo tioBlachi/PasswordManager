@@ -58,14 +58,20 @@ class Database:
 
     def get_user(self, email: str) -> User:
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM users WHERE email = ?", (email,)
-            ).fetchone()
-            if not row:
-                return None
-            return User(
-                email=row["email"], vault_key_hash=row["vault_key_hash"], id=row["id"]
+            conn.row_factory = sqlite3.Row
+            cur = conn.execute(
+                "SELECT id, email, vault_key_hash, enc_salt FROM users WHERE email = ?",
+                (email.strip().lower(),),
             )
+            row = cur.fetchone()
+            if row:
+                return User(
+                    id=row["id"],
+                    email=row["email"],
+                    vault_key_hash=row["vault_key_hash"],
+                    enc_salt=row["enc_salt"],
+                )
+        return None
 
     def delete_user(self, email: str) -> int:
         with self._connect() as conn:
