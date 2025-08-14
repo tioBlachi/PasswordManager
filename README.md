@@ -34,3 +34,4 @@ docker run -it --rm password-manager
 - Implement a GUI
 - Encrypt all metadata for enhanced privacy
 - Add clipboard integration for copying passwords securely
+- Will work on improving as time becomes available
