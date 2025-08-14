@@ -70,7 +70,7 @@ def vault_loop(user: User, vault) -> None:
                 print(f"{idx}. {item['account']}")
 
             try:
-                item_idx = int(input("Select an account by number: "))
+                item_idx = int(input("Select an account by number. Enter to go back "))
                 if item_idx < 1 or item_idx > len(items):
                     print("Invalid account selection.")
                     continue
@@ -111,10 +111,13 @@ def vault_loop(user: User, vault) -> None:
 
                 elif sub == "3":
                     new_site = (
-                        input(f"New site [{item['site']}]: ").strip() or item["site"]
+                        input(f"New site [{item['site']}]. Enter to skip:  ").strip()
+                        or item["site"]
                     )
                     new_account = (
-                        input(f"New account [{item['account']}]: ").strip()
+                        input(
+                            f"New account [{item['account']}]. Enter to skip: "
+                        ).strip()
                         or item["account"]
                     )
 
@@ -122,9 +125,11 @@ def vault_loop(user: User, vault) -> None:
                         print("No changes made. Information is identical")
 
                     if vault.update_meta(item["id"], new_site, new_account):
-                        item["site"] == new_site
-                        item["account"] == new_account
-                        print(f"Renamed to {item['site']} ({item['account']}).")
+                        item["site"] = new_site
+                        item["account"] = new_account
+                        print(
+                            f"Renamed to {item['site']} (Account: {item['account']}).\n"
+                        )
                     else:
                         print("Rename failed.")
 
