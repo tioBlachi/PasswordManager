@@ -1,11 +1,11 @@
 import sqlite3
 from typing import Optional, Tuple
-from user import User
-from hasher import Hasher
-from database import Database
-from vault import Vault
+from src.user import User
+from src.hasher import Hasher
+from src.database import Database
+from src.vault import Vault
 from getpass import getpass
-from utils import *
+from src.utils import *
 
 
 def login(db: Database, hasher: Hasher) -> Optional[Tuple[User, str]]:
